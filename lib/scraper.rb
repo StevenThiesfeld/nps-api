@@ -1,7 +1,3 @@
-require 'open-uri'
-
-
-
 def get_park_classifications
   Park.all.each do |park|
     begin
@@ -12,6 +8,16 @@ def get_park_classifications
       park.save
     else
       park.save
+    end
+    sleep(2)
+  end
+  replace_blank_classifications
+end
+
+def replace_blank_classifications
+  Park.all.each do |park|
+    if park.classification == "" || park.classification == "No Classification"
+      park.update(classification: "No Official Classification")
     end
   end
 end
@@ -25,6 +31,20 @@ def create_park_entries
     park.save
   end
 end
+
+def scrape_wikipedia
+  wiki_doc = Nokogiri::HTML(open("http://en.wikipedia.org/wiki/List_of_areas_in_the_United_States_National_Park_System#National_Historic_Sites"))
+  wiki_links = {}
+  wiki_doc.css("tr td a").each do |link|
+    wiki_links[link.text] = "http://en.wikipedia.org" + link["href"]
+  end
+  Park.all.each do |park|
+    if wiki_links.keys.include?(park.name + " " + park.classification)
+      park.update(wiki_url: wiki_links[park.name + " " + park.classification])
+    end
+  end
+end
+
 
 
 
