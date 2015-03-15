@@ -45,18 +45,16 @@ def scrape_wikipedia
   end
 end
 
-
-
-
-
-
-
-#doc.css("p")[0]["onclick"]#targets value of onclick "selectPark('/abli/');return false;" need to parse this out, common pattern?
-
-#url.byteslice(11, 7) gets park url
-# wiki_doc = Nokogiri::HTML(open("http://en.wikipedia.org/wiki/" + park.name.gsub(" ", "_")))
-# park.location = wiki_doc.css("tr.locality a")[0].text
-# park.coordinates = wiki_doc.css("span.latitude")[0].text + " " + wiki_doc.css("span.longitude")[0].text
-# park_objects << park
-
-#lat+long wiki_doc.css("span.latitude")[0].text +" " + wiki_doc.css("span.longitude")[0].text
+def get_lat_and_long
+  Park.where.not(wiki_url: nil).each do |park|
+    begin
+    wiki_doc = Nokogiri::HTML(open(park.wiki_url))
+    park.latitude = wiki_doc.css("span.latitude")[0].text
+    park.longitude = wiki_doc.css("span.longitude")[0].text
+    park.save
+    rescue
+    end
+    # lat+long wiki_doc.css("span.latitude")[0].text +" " + wiki_doc.css("span.longitude")[0].text
+    sleep(2)
+  end
+end
