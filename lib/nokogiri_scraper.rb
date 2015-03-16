@@ -14,7 +14,20 @@ module NokogiriScraper
     end
     replace_blank_classifications
   end
-
+  
+  #get correct timestamp
+  # t = Time.new
+#   (t.to_f * 1000).to_i
+  
+  def scrape_park_alerts(park)
+    park_abbr = park.nps_url.byteslice(19, 4)
+    time = Time.new
+    time = (time.to_f * 1000).to_i
+    url = "http://www.nps.gov/mwr/renderhandlers/cs_chooser/rh_alert_chooser_json.cfm?siteCode=#{park_abbr}&ts=#{time}"
+    alert_doc = Nokogiri::HTML(open(url))
+    alert_doc.text
+  end
+  
   def replace_blank_classifications
     Park.all.each do |park|
       if park.classification == "" || park.classification == "No Classification"
@@ -58,6 +71,79 @@ module NokogiriScraper
       sleep(2)
     end
   end
-
+  
+  def scrape_location_from_nps
+    Park.where(location: nil).each do |park|
+      begin
+      nps_doc = Nokogiri::HTML(open(park.nps_url))
+      park.update(location: nps_doc.css("span.location")[0].text.strip)
+      rescue
+        park.update(location: "issue")
+      end
+      sleep(2)
+    end
+  end
+  
+  def set_location_to_state_abbr
+    states = {
+          "Alabama" => "AL",
+          "Alaska" => "AK",
+          "Arizona" => "AZ",
+          "Arkansas" => "AR",
+          "California" => "CA",
+          "Colorado" => "CO",
+          "Connecticut" => "CT",
+          "Delaware" => "DE",
+          "District of Columbia" => "DC",
+          "Florida" => "FL",
+          "Georgia" => "GA",
+          "Hawai'i" => "HI",
+          "Idaho" => "ID",
+          "Illinois" => "IL",
+          "Indiana" => "IN",
+          "Iowa" => "IA",
+          "Kansas" => "KS",
+          "Kentucky" => "KY",
+          "Louisiana" => "LA",
+          "Maine" => "ME",
+          "Maryland" => "MD",
+          "Massachusetts" => "MA",
+          "Michigan" => "MI",
+          "Minnesota" => "MN",
+          "Mississippi" => "MS",
+          "Missouri" => "MO",
+          "Montana" => "MT",
+          "Nebraska" => "NE",
+          "Nevada" => "NV",
+          "New Hampshire" => "NH",
+          "New Jersey" => "NJ",
+          "New Mexico" => "NM",
+          "New York" => "NY",
+          "North Carolina" => "NC",
+          "North Dakota" => "ND",
+          "Ohio" => "OH",
+          "Oklahoma" => "OK",
+          "Oregon" => "OR",
+          "Pennsylvania" => "PA",
+          "Rhode Island" => "RI",
+          "South Carolina" => "SC",
+          "South Dakota" => "SD",
+          "Tennessee" => "TN",
+          "Texas" => "TX",
+          "Utah" => "UT",
+          "Vermont" => "VT",
+          "Virginia" => "VA",
+          "Washington" => "WA",
+          "West Virginia" => "WV",
+          "Wisconsin" => "WI",
+          "Wyoming" => "WY"
+        }
+        states.each do |name, abbr|
+          Park.where(location: name).each do |park|
+            park.update(location: abbr)
+          end
+        end
+      end
+  
 end# module end
 

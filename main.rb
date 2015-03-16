@@ -29,5 +29,7 @@ end
 require_relative 'database/db_setup'
 require_relative 'models/park'
 require_relative "lib/url_translator"
-require_relative "lib/scraper"
+require_relative "lib/nokogiri_scraper"
 require_relative "controllers/park"
+include NokogiriScraper
+binding.pry
