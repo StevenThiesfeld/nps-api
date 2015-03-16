@@ -17,7 +17,7 @@ end
 def replace_blank_classifications
   Park.all.each do |park|
     if park.classification == "" || park.classification == "No Classification"
-      park.update(classification: "No Official Classification")
+      park.update(classification: "none")
     end
   end
 end
@@ -54,7 +54,6 @@ def get_lat_and_long
     park.save
     rescue
     end
-    # lat+long wiki_doc.css("span.latitude")[0].text +" " + wiki_doc.css("span.longitude")[0].text
     sleep(2)
   end
 end
