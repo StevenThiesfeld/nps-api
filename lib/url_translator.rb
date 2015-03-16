@@ -12,7 +12,7 @@ def set_irregular_wiki_urls
 end
 
 def set_google_query(park)
-  if park.classification != "No Official Classification"
+  if park.classification != "none"
     query = (park.name + " " + park.classification).gsub(" ", "+")
   else
     query = park.name.gsub(" ", "+")

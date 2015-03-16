@@ -4,7 +4,7 @@ def get_park_classifications
       nps_doc = Nokogiri::HTML(open(park.nps_url))
       park.classification = nps_doc.css("div.sub h3")[0].text.split("\n")[0].strip
     rescue
-      park.classification = "No Classification"
+      park.classification = "none"
       park.save
     else
       park.save
@@ -32,7 +32,7 @@ def create_park_entries
   end
 end
 
-def scrape_wikipedia
+def scrape_wikipedia_for_urls
   wiki_doc = Nokogiri::HTML(open("http://en.wikipedia.org/wiki/List_of_areas_in_the_United_States_National_Park_System#National_Historic_Sites"))
   wiki_links = {}
   wiki_doc.css("tr td a").each do |link|
@@ -46,7 +46,7 @@ def scrape_wikipedia
 end
 
 def get_lat_and_long
-  Park.where.not(wiki_url: nil).each do |park|
+  Park.where(latitude: nil).each do |park|
     begin
     wiki_doc = Nokogiri::HTML(open(park.wiki_url))
     park.latitude = wiki_doc.css("span.latitude")[0].text

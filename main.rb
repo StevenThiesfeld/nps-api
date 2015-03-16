@@ -9,5 +9,3 @@ require_relative "lib/url_translator"
 require_relative "lib/scraper"
 require 'open-uri'
 binding.pry
-#235         Iñupiat Heritage Center
-# 384         Pu`ukoholā Heiau
