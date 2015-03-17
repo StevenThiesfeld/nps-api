@@ -28,6 +28,13 @@ module NokogiriScraper
     alert_doc.text
   end
   
+  def scrape_description
+    Park.all.each do |park|
+      nps_doc = Nokogiri::HTML(open(park.nps_url))
+      binding.pry
+    end
+  end
+  
   def replace_blank_classifications
     Park.all.each do |park|
       if park.classification == "" || park.classification == "No Classification"

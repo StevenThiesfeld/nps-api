@@ -11,5 +11,7 @@ unless ActiveRecord::Base.connection.table_exists?(:parks)
     t.text :location
     t.text :latitude
     t.text :longitude
+    t.text :description
+    t.text :description_title
   end
 end
