@@ -24,14 +24,21 @@ module NokogiriScraper
     time = Time.new
     time = (time.to_f * 1000).to_i
     url = "http://www.nps.gov/mwr/renderhandlers/cs_chooser/rh_alert_chooser_json.cfm?siteCode=#{park_abbr}&ts=#{time}"
+    #http://www.nps.gov/akr/renderhandlers/cs_chooser/rh_alert_chooser_json.cfm?siteCode=abli&ts=1426595802969
     alert_doc = Nokogiri::HTML(open(url))
     alert_doc.text
   end
   
   def scrape_description
     Park.all.each do |park|
-      nps_doc = Nokogiri::HTML(open(park.nps_url))
-      binding.pry
+      begin
+        nps_doc = Nokogiri::HTML(open(park.nps_url))
+        park.description = nps_doc.css("div.cs_control p")[0].text
+        park.description_title = nps_doc.css("div.cs_control h1.page-title")[0].text
+        park.save
+      rescue
+      end
+      sleep(2)
     end
   end
   
