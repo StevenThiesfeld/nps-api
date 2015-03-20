@@ -20,13 +20,14 @@ module NokogiriScraper
 #   (t.to_f * 1000).to_i
   
   def scrape_park_alerts(park)
-    park_abbr = park.nps_url.byteslice(19, 4)
-    time = Time.new
-    time = (time.to_f * 1000).to_i
-    url = "http://www.nps.gov/mwr/renderhandlers/cs_chooser/rh_alert_chooser_json.cfm?siteCode=#{park_abbr}&ts=#{time}"
-    #http://www.nps.gov/akr/renderhandlers/cs_chooser/rh_alert_chooser_json.cfm?siteCode=abli&ts=1426595802969
-    alert_doc = Nokogiri::HTML(open(url))
-    alert_doc.text
+    b = Watir::Browser.new(:phantomjs)
+    b.goto park.nps_url
+    doc = Nokogiri::HTML(b.html)
+    b.close
+    alert = {}
+    alert["title"] = doc.css("div#alert-message h4").text
+    alert["body"] = doc.css("div#alert-message p").text
+    alert
   end
   
   def scrape_description

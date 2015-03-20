@@ -20,8 +20,25 @@ get "/parks/state/:state" do
 end
 
 get "/parks/classification/:query" do
+  parks = Park.where("classification like ?", "%" + params[:query] + "%")
+  response = {}
+  parks.each do |park|
+    response[park.name] = {}
+    response[park.name][:parkinfo] = park.to_json
+    response[park.name][:alerts] = scrape_park_alerts(park)
+    sleep(1)
+  end
+  response.to_json
 end
 
 get "/parks/name/:query" do
+  parks = Park.where("name like ?", "%" + params[:query] + "%")
+  response = {}
+  parks.each do |park|
+    response[park.name] = {}
+    response[park.name][:parkinfo] = park.to_json
+    response[park.name][:alerts] = scrape_park_alerts(park)
+  end
+  response.to_json
 end
 

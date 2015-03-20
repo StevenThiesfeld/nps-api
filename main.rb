@@ -8,6 +8,7 @@ require 'sinatra/activerecord'
 require 'json'
 require 'pg'
 require 'open-uri'
+require 'watir'
 
 configure :development do
   require 'sqlite3'
@@ -32,4 +33,3 @@ require_relative "lib/url_translator"
 require_relative "lib/nokogiri_scraper"
 require_relative "controllers/parks_controller"
 include NokogiriScraper
-binding.pry
