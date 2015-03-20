@@ -19,7 +19,7 @@ get "/parks/state/:state" do
   parks.to_json
 end
 
-get "/parks/classification/:classification" do
+get "/parks/classification/:query" do
 end
 
 get "/parks/name/:query" do

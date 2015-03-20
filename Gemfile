@@ -8,3 +8,4 @@ gem 'activesupport'
 gem 'sinatra-activerecord'
 gem 'json'
 gem 'pg', :groups => [:production]
+gem 'watir'
