@@ -1,4 +1,19 @@
+# A module using nokogiri to scrape information from the National Parks Service website and the corresponding wikipedia page.
+
 module NokogiriScraper
+  
+  # Seeds the database with a list of park records and establishes a link to the nps webpage for a given park. 
+  def create_park_entries
+    nps_doc = Nokogiri::HTML(open("http://www.nps.gov/PWR/customcf/apps/park-search/panelThree.cfm?name=all"))
+    nps_doc.css("p").each do |p|
+      park = Park.new
+      park.name = p.children.text.strip
+      park.nps_url = "http://www.nps.gov" + p["onclick"].byteslice(12, 6) + "index.htm"
+      park.save
+    end
+  end
+  
+  # scrapes the classification for all parks and replaces black fields with "none".
   def get_park_classifications
     Park.all.each do |park|
       begin
@@ -15,10 +30,7 @@ module NokogiriScraper
     replace_blank_classifications
   end
   
-  #get correct timestamp
-  # t = Time.new
-#   (t.to_f * 1000).to_i
-  
+  # uses Watir and phantomjs to scrape any active alerts from a webpage.
   def scrape_park_alerts(park)
     b = Watir::Browser.new(:phantomjs)
     b.goto park.nps_url
@@ -30,6 +42,7 @@ module NokogiriScraper
     alert
   end
   
+  # scrapes the description content for all parks from nps.gov.
   def scrape_description
     Park.all.each do |park|
       begin
@@ -43,24 +56,16 @@ module NokogiriScraper
     end
   end
   
+  # replaces any blank classification fields with "none".
   def replace_blank_classifications
     Park.all.each do |park|
-      if park.classification == "" || park.classification == "No Classification"
+      if park.classification == ""
         park.update(classification: "none")
       end
     end
   end
-
-  def create_park_entries
-    nps_doc = Nokogiri::HTML(open("http://www.nps.gov/PWR/customcf/apps/park-search/panelThree.cfm?name=all"))
-    nps_doc.css("p").each do |p|
-      park = Park.new
-      park.name = p.children.text.strip
-      park.nps_url = "http://www.nps.gov" + p["onclick"].byteslice(12, 6) + "index.htm"
-      park.save
-    end
-  end
-
+ 
+  # Scrapes wikipedia's list of national parks for pages matching names from nps.gov and saves wiki_url for all parks found.
   def scrape_wikipedia_for_urls
     wiki_doc = Nokogiri::HTML(open("http://en.wikipedia.org/wiki/List_of_areas_in_the_United_States_National_Park_System#National_Historic_Sites"))
     wiki_links = {}
@@ -73,7 +78,8 @@ module NokogiriScraper
       end
     end
   end
-
+  
+  # Scrapes all park wikipedia pages for latitude and longitude where applicable.  lat and long fields that weren't found are left nil. 
   def get_lat_and_long
     Park.where(latitude: nil).each do |park|
       begin
@@ -87,6 +93,7 @@ module NokogiriScraper
     end
   end
   
+  # scrapes the location (by state) for each park from nps.gov  Some sites span multiple states.
   def scrape_location_from_nps
     Park.where(location: nil).each do |park|
       begin
@@ -99,6 +106,39 @@ module NokogiriScraper
     end
   end
   
+  # constructs a google search from park name and classification and scrapes results for a park's wikipedia url
+  def set_irregular_wiki_urls
+    Park.where(wiki_url: nil).each do |park|
+      google_doc = Nokogiri::HTML(open("https://www.google.com/search?q=" + set_google_query(park)))
+      google_results = google_doc.css("h3.r a")
+      google_results.each do |link|
+        if link.text.include?("Wikipedia")
+          park.update(wiki_url: link["href"].string_between_markers("?q=", "&sa"))
+        end
+      end
+      sleep(2)
+    end
+  end
+
+  # puts together the query based on presence of classification
+  def set_google_query(park)
+    if park.classification != "none"
+      query = (park.name + " " + park.classification).gsub(" ", "+")
+    else
+      query = park.name.gsub(" ", "+")
+    end
+    query
+  end
+
+  # custom string method for extracting a sub-string between 2 given pattern markers.  Used to extract the wikipedia url from google results.
+  class String
+    def string_between_markers marker1, marker2
+      self[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m, 1]
+    end
+  end
+  
+  # replaces any full state names to a more manageable abbreviation.
+  # only needed for parks with a single state as location. 
   def set_location_to_state_abbr
     states = {
           "Alabama" => "AL",
