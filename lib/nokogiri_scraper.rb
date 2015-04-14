@@ -1,5 +1,5 @@
-# A module using nokogiri to scrape information from the National Parks Service website and the corresponding wikipedia page.
-
+ # Public: Various methods using nokogiri to scrape data from the National Parks Service website.
+ 
 module NokogiriScraper
   
   # Seeds the database with a list of park records and establishes a link to the nps webpage for a given park. 
